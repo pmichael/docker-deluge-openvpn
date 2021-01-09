@@ -41,6 +41,8 @@ services:
             - LOCAL_NETWORK=192.168.0.0/16
         cap_add:
             - NET_ADMIN
+        sysctls:
+            - net.ipv6.conf.all.disable_ipv6=0
         logging:
             driver: json-file
             options:
