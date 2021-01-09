@@ -27,7 +27,7 @@ $ docker run --cap-add=NET_ADMIN -d \
 
 ## Docker Compose
 ```
-version: '3.3'
+version: '3.2'
 services:
     deluge-openvpn:
         volumes:
