@@ -22,7 +22,7 @@ $ docker run --cap-add=NET_ADMIN -d \
               --log-driver json-file \
               --log-opt max-size=10m \
               -p 8112:8112 \
-              ebrianne/deluge-openvpn
+              ebrianne/docker-deluge-openvpn
 ```
 
 ## Docker Compose
@@ -47,7 +47,7 @@ services:
                 max-size: 10m
         ports:
             - '8112:8112'
-        image: ebrianne/deluge-openvpn
+        image: ebrianne/docker-deluge-openvpn
 ```
 
 ## Documentation
