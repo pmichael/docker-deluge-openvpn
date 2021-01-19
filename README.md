@@ -1,5 +1,8 @@
 # OpenVPN and Deluge with WebUI
 
+![Build/Push (master)](https://github.com/ebrianne/docker-deluge-openvpn/workflows/Build/Push%20(master)/badge.svg?branch=master)
+[![Docker Pulls](https://img.shields.io/docker/pulls/ebrianne/docker-deluge-openvpn.svg)](https://hub.docker.com/r/ebrianne/docker-deluge-openvpn/)
+
 ## Acknowledgments
 
 This project is based heavily on the fork of [docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn). 
