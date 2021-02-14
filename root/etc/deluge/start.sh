@@ -55,8 +55,8 @@ fi
 
 if [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
   log "Allow in and out from ${GW_CIDR}"
-  ufw allow in to ${GW_CIDR}
-  ufw allow out to ${GW_CIDR}
+  ufw allow in from ${GW_CIDR}
+  ufw allow out from ${GW_CIDR}
 fi
 
 if [[ -n "${LOCAL_NETWORK-}" ]]; then
