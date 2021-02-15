@@ -20,7 +20,6 @@ $ docker run --cap-add=NET_ADMIN -d \
               -e OPENVPN_CONFIG=France \
               -e OPENVPN_USERNAME=user \
               -e OPENVPN_PASSWORD=pass \
-              -e WEBPROXY_ENABLED=false \
               -e LOCAL_NETWORK=192.168.0.0/16 \
               --log-driver json-file \
               --log-opt max-size=10m \
@@ -40,7 +39,6 @@ services:
             - OPENVPN_CONFIG=France
             - OPENVPN_USERNAME=user
             - OPENVPN_PASSWORD=pass
-            - WEBPROXY_ENABLED=false
             - LOCAL_NETWORK=192.168.0.0/16
         cap_add:
             - NET_ADMIN
@@ -72,10 +70,6 @@ The full documentation is available at https://haugene.github.io/docker-transmis
 | PUID               | **None**      |
 | PGID               | **None**      |
 | DROP_DEFAULT_ROUTE | **None**      |
-| WEBPROXY_ENABLED   | false         |
-| WEBPROXY_PORT      | 8888          |
-| WEBPROXY_USERNAME  | **None**      |
-| WEBPROXY_PASSWORD  | **None**      |
 | HEALTH_CHECK_HOST  | google.com    |
 | LANG               | en_US.UTF-8   |
 | LANGUAGE           | en_US.UTF-8   |
