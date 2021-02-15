@@ -49,14 +49,15 @@ if [[ "${ENABLE_UFW,,}" == "true" ]] || [[ -n "${LOCAL_NETWORK-}" ]]; then
   eval $(/sbin/ip r l | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
   ## IF we use UFW_ALLOW_GW_NET along with ENABLE_UFW we need to know what our netmask CIDR is
   if [[ "${ENABLE_UFW,,}" == "true" ]] && [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
-    eval $(ip r l dev ${INT} | awk '{if($5=="link"){print "GW_CIDR="$1; exit}}')
+    eval $(ip r l dev ${INT} | awk '{if($3=="link"){print "GW_CIDR="$1; exit}}')
   fi
 fi
 
-if [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
-  log "Allow in and out from ${GW_CIDR}"
-  ufw allow in from ${GW_CIDR}
-  ufw allow out from ${GW_CIDR}
+echo "Got local network ${GW} and CIDR ${GW_CIDR} on interface ${INT}"
+
+if [[ "${ENABLE_UFW,,}" == "true" && "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
+  log "Allow from ${GW_CIDR}"
+  ufw allow from ${GW_CIDR}
 fi
 
 if [[ -n "${LOCAL_NETWORK-}" ]]; then
@@ -67,6 +68,8 @@ if [[ -n "${LOCAL_NETWORK-}" ]]; then
     done
   fi
 fi
+
+ufw status
 
 log "Starting Deluge"
 exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluged -d -c /config -L info -l /config/deluged.log" &

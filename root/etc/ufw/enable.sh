@@ -19,8 +19,11 @@ sed -i -e s/IPV6=yes/IPV6=no/ /etc/default/ufw
 log "Deny all outgoing traffic"
 ufw default deny outgoing
 # Block all incoming
-log "Deny all incoming traffic"
-ufw default deny incoming
+# log "Deny all incoming traffic"
+# ufw default deny incoming
+# Allow all incoming
+log "Allow all incoming traffic"
+ufw default allow incoming
 
 # Allow LOCAL_NETWORK
 if [[ -n "${LOCAL_NETWORK-}" ]]; then

@@ -28,9 +28,7 @@ wanted_variables = {
 variables_to_persist = {}
 
 for env_var in os.environ:
-    if env_var.startswith('WEBPROXY_'):
-        variables_to_persist[env_var] = os.environ.get(env_var)
-    elif env_var in wanted_variables:
+    if env_var in wanted_variables:
         variables_to_persist[env_var] = os.environ.get(env_var)
 
 

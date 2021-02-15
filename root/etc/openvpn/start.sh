@@ -106,7 +106,7 @@ fi
 if [[ "${CREATE_TUN_DEVICE,,}" == "true" ]]; then
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200
-  chmod 0666 /dev/net/tun
+  chmod 600 /dev/net/tun
 fi
 
 ##
@@ -118,7 +118,10 @@ fi
 VPN_PROVIDER="${OPENVPN_PROVIDER:-custom}"
 VPN_PROVIDER="${VPN_PROVIDER,,}" # to lowercase
 VPN_PROVIDER_HOME="/etc/openvpn/${VPN_PROVIDER}"
-mkdir -p "$VPN_PROVIDER_HOME"
+if [[ ! -d $VPN_PROVIDER_HOME ]]; then
+  echo "Creating $VPN_PROVIDER_HOME"
+  mkdir -p "$VPN_PROVIDER_HOME"
+fi
 
 # Make sure that we have enough information to start OpenVPN
 if [[ -z $OPENVPN_CONFIG_URL ]] && [[ "${OPENVPN_PROVIDER}" == "**None**" ]] || [[ -z "${OPENVPN_PROVIDER-}" ]]; then
