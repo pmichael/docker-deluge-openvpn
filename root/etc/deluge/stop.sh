@@ -2,7 +2,7 @@
 
 TIMESTAMP_FORMAT='%a %b %d %T %Y'
 log() {
-  echo "$(date +"${TIMESTAMP_FORMAT}") [tunnel-up] $*"
+  echo "$(date +"${TIMESTAMP_FORMAT}") [tunnel-down] $*"
 }
 
 # If deluge-pre-stop.sh exists, run it
@@ -15,7 +15,7 @@ fi
 
 echo "Sending kill signal to deluge-daemon"
 PID=$(pidof deluged)
-kill $PID
+kill -9 $PID
 # Give deluge-daemon time to shut down
 for i in {1..10}; do
     ps -p $PID &> /dev/null || break
