@@ -6,7 +6,7 @@
 
 TIMESTAMP_FORMAT='%a %b %d %T %Y'
 log() {
-  echo "$(date +"${TIMESTAMP_FORMAT}") [tunnel-up] $*"
+  echo "$(date +"${TIMESTAMP_FORMAT}") [start-vpn] $*"
 }
 
 if [[ -n "$REVISION" ]]; then
@@ -73,7 +73,7 @@ chmod -R 775 /usr/bin/deluged /usr/bin/deluge-web
 # if config file doesnt exist (wont exist until user changes a setting) then copy default config file
 if [[ ! -f /config/core.conf ]]; then
   log "[info] Deluge config file doesn't exist, copying default..."
-  cp /etc/config/core.conf /config/
+  cp /etc/config/core.conf /config/deluge/
 else
   log "[info] Deluge config file already exists, skipping copy"
 fi
@@ -81,7 +81,7 @@ fi
 # if config file doesnt exist then copy stock config file
 if [[ ! -f /config/web.conf ]]; then
   log "[info] Deluge webui config file doesn't exist, copying default..."
-  cp /etc/config/web.conf /config/
+  cp /etc/config/web.conf /config/deluge-web/
 else
   log "[info] Deluge webui config file already exists, skipping copy"
 fi

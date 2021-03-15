@@ -2,7 +2,7 @@
 
 TIMESTAMP_FORMAT='%a %b %d %T %Y'
 log() {
-  echo "$(date +"${TIMESTAMP_FORMAT}") [tunnel-up] $*"
+  echo "$(date +"${TIMESTAMP_FORMAT}") [deluge-start] $*"
 }
 
 # Source our persisted env variables from container startup
@@ -72,7 +72,7 @@ fi
 ufw status
 
 log "Starting Deluge"
-exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluged -d -c /config -L info -l /config/deluged.log" &
+exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluged -d -c /config/deluge -L info -l /config/deluge/deluged.log" &
 
 # wait for deluge daemon process to start (listen for port)
 while [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".58846"') == "" ]]; do
@@ -80,7 +80,7 @@ while [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".58846"') == "" ]]; do
 done
 
 log "Starting Deluge webui..."
-exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluge-web -d -c /config -L info -l /config/web.log" &
+exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluge-web -d -c /config/delugeweb -L info -l /config/delugeweb/web.log" &
 
 # Configure port forwarding if applicable
 if [[ -x /etc/openvpn/${OPENVPN_PROVIDER,,}/update-port.sh && -z $DISABLE_PORT_UPDATER ]]; then

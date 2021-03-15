@@ -18,7 +18,8 @@ RUN set -ex; \
     echo "Adding user"; \
     groupadd -g 911 abc && \
 	useradd -u 911 -g 911 -s /bin/false -m abc && \
-    usermod -G users abc
+    usermod -G users abc && \
+    mkdir -p /config/deluge && mkdir -p /config/delugeweb
 
 # Add configuration and scripts
 COPY root/ /
@@ -37,7 +38,9 @@ ENV OPENVPN_USERNAME=**None** \
     LANG='en_US.UTF-8' \
     LANGUAGE='en_US.UTF-8' \ 
     TERM='xterm' \
-    LOCAL_NETWORK=
+    LOCAL_NETWORK= \
+    PEER_DNS= \
+    DISABLE_PORT_UPDATER=
 
 HEALTHCHECK --interval=1m CMD /etc/scripts/healthcheck.sh
 
@@ -46,4 +49,4 @@ VOLUME /config
 
 EXPOSE 8112 58846 58946 58946/udp
 
-CMD ["dumb-init", "/etc/openvpn/start.sh"]
+CMD ["dumb-init", "/etc/openvpn/init.sh"]

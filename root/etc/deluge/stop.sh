@@ -2,18 +2,18 @@
 
 TIMESTAMP_FORMAT='%a %b %d %T %Y'
 log() {
-  echo "$(date +"${TIMESTAMP_FORMAT}") [tunnel-down] $*"
+  echo "$(date +"${TIMESTAMP_FORMAT}") [deluge-stop] $*"
 }
 
 # If deluge-pre-stop.sh exists, run it
 if [[ -x /config/deluge-pre-stop.sh ]]
 then
-   echo "Executing /config/deluge-pre-stop.sh"
+   log "Executing /config/deluge-pre-stop.sh"
    /config/deluge-pre-stop.sh "$@"
-   echo "/config/deluge-pre-stop.sh returned $?"
+   log "/config/deluge-pre-stop.sh returned $?"
 fi
 
-echo "Sending kill signal to deluge-daemon"
+log "Sending kill signal to deluge-daemon"
 PID=$(pidof deluged)
 kill -9 $PID
 # Give deluge-daemon time to shut down
@@ -25,7 +25,7 @@ done
 # If deluge-post-stop.sh exists, run it
 if [[ -x /config/deluge-post-stop.sh ]]
 then
-   echo "Executing /config/deluge-post-stop.sh"
+   log "Executing /config/deluge-post-stop.sh"
    /config/deluge-post-stop.sh "$@"
-   echo "/config/deluge-post-stop.sh returned $?"
+   log "/config/deluge-post-stop.sh returned $?"
 fi
