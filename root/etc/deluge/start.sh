@@ -53,7 +53,7 @@ if [[ "${ENABLE_UFW,,}" == "true" ]] || [[ -n "${LOCAL_NETWORK-}" ]]; then
   fi
 fi
 
-echo "Got local network ${GW} and CIDR ${GW_CIDR} on interface ${INT}"
+log "Got local network ${GW} and CIDR ${GW_CIDR} on interface ${INT}"
 
 if [[ "${ENABLE_UFW,,}" == "true" && "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
   log "Allow from ${GW_CIDR}"
@@ -72,7 +72,7 @@ fi
 ufw status
 
 log "Starting Deluge"
-exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluged -d -c /config/deluge -L info -l /config/deluge/deluged.log" &
+exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluged -d -c /config -L info -l /config/deluged.log" &
 
 # wait for deluge daemon process to start (listen for port)
 while [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".58846"') == "" ]]; do
@@ -80,7 +80,7 @@ while [[ $(netstat -lnt | awk '$6 == "LISTEN" && $4 ~ ".58846"') == "" ]]; do
 done
 
 log "Starting Deluge webui..."
-exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluge-web -d -c /config/delugeweb -L info -l /config/delugeweb/web.log" &
+exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluge-web -c /config -L info -l /config/web.log" &
 
 # Configure port forwarding if applicable
 if [[ -x /etc/openvpn/${OPENVPN_PROVIDER,,}/update-port.sh && -z $DISABLE_PORT_UPDATER ]]; then

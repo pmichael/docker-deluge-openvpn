@@ -61,7 +61,7 @@ if [[ ! -f "/config/perms.txt" ]]; then
     log "[warn] Unable to chown/chmod ${volumes}, assuming NFS/SMB mountpoint"
   fi
 
-  echo "This file prevents permissions from being applied/re-applied to /config, if you want to reset permissions then please delete this file and restart the container." >/config/perms.txt
+  log "This file prevents permissions from being applied/re-applied to /config, if you want to reset permissions then please delete this file and restart the container." >/config/perms.txt
 else
   log "[info] Permissions already set for volume mappings"
 fi
@@ -73,7 +73,7 @@ chmod -R 775 /usr/bin/deluged /usr/bin/deluge-web
 # if config file doesnt exist (wont exist until user changes a setting) then copy default config file
 if [[ ! -f /config/core.conf ]]; then
   log "[info] Deluge config file doesn't exist, copying default..."
-  cp /etc/config/core.conf /config/deluge/
+  cp /etc/config/core.conf /config
 else
   log "[info] Deluge config file already exists, skipping copy"
 fi
@@ -81,7 +81,7 @@ fi
 # if config file doesnt exist then copy stock config file
 if [[ ! -f /config/web.conf ]]; then
   log "[info] Deluge webui config file doesn't exist, copying default..."
-  cp /etc/config/web.conf /config/deluge-web/
+  cp /etc/config/web.conf /config
 else
   log "[info] Deluge webui config file already exists, skipping copy"
 fi

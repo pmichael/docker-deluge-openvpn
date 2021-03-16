@@ -18,8 +18,7 @@ RUN set -ex; \
     echo "Adding user"; \
     groupadd -g 911 abc && \
 	useradd -u 911 -g 911 -s /bin/false -m abc && \
-    usermod -G users abc && \
-    mkdir -p /config/deluge && mkdir -p /config/delugeweb
+    usermod -G users abc
 
 # Add configuration and scripts
 COPY root/ /
