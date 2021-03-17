@@ -200,7 +200,7 @@ if [[ "true" = "${ENABLE_UFW}" ]]; then
   /etc/ufw/enable.sh tun0 ${CHOSEN_OPENVPN_CONFIG}
 fi
 
-DELUGE_CONTROL_OPTS="--script-security 2 --up-delay --up /etc/openvpn/tunnelUp.sh --down /etc/openvpn/tunnelDown.sh"
+DELUGE_CONTROL_OPTS="--script-security 2 --auth-nocache --up-delay --up /etc/openvpn/tunnelUp.sh --down /etc/openvpn/tunnelDown.sh"
 
 # shellcheck disable=SC2086
 log "Starting openvpn"

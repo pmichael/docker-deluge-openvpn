@@ -69,7 +69,15 @@ if [[ -n "${LOCAL_NETWORK-}" ]]; then
   fi
 fi
 
-ufw status
+# check if ufw is disabled (re-enable it)
+if [[ "${ENABLE_UFW,,}" == "true" ]]; then
+  ufw status | grep -qw active
+  if [[ "$?" != "0" ]]; then
+    log "Re-enabling ufw"
+    ufw enable
+    ufw status
+  fi
+fi
 
 log "Starting Deluge"
 exec su --preserve-environment abc -s /bin/bash -c "/usr/bin/deluged -d -c /config -L info -l /config/deluged.log" &

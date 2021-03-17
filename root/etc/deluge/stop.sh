@@ -14,7 +14,7 @@ then
 fi
 
 log "Sending kill signal to deluge-daemon"
-PID=$(pidof deluged)
+PID=$(pidof /usr/bin/python3 /usr/bin/deluged)
 kill -9 $PID
 # Give deluge-daemon time to shut down
 for i in {1..10}; do
@@ -29,3 +29,5 @@ then
    /config/deluge-post-stop.sh "$@"
    log "/config/deluge-post-stop.sh returned $?"
 fi
+
+exec /etc/ufw/disable.sh
