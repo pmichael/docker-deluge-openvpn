@@ -15,7 +15,8 @@ It bundles configuration files for many popular VPN providers to make the setup 
 
 ```
 $ docker run --cap-add=NET_ADMIN -d \
-              -v /your/storage/path/:/data \
+              -v /your/storage/path/to/downloads/:/downloads \
+              -v /your/storage/path/to/config/:/config \
               -e OPENVPN_PROVIDER=PIA \
               -e OPENVPN_CONFIG=France \
               -e OPENVPN_USERNAME=user \
@@ -24,6 +25,8 @@ $ docker run --cap-add=NET_ADMIN -d \
               --log-driver json-file \
               --log-opt max-size=10m \
               -p 8112:8112 \
+              -p 58846:58846 \
+              -p 58946:58946 \
               ebrianne/docker-deluge-openvpn
 ```
 
@@ -33,7 +36,8 @@ version: '3.2'
 services:
     deluge-openvpn:
         volumes:
-            - '/your/storage/path/:/data'
+            - '/your/storage/path/to/downloads/:/downloads'
+            - '/your/storage/path/to/config/:/config'
         environment:
             - OPENVPN_PROVIDER=PIA
             - OPENVPN_CONFIG=France
@@ -50,6 +54,8 @@ services:
                 max-size: 10m
         ports:
             - '8112:8112'
+            - '58846:58846'
+            - '58946:58946'
         image: ebrianne/docker-deluge-openvpn
 ```
 
@@ -75,3 +81,17 @@ The full documentation is available at https://haugene.github.io/docker-transmis
 | LANGUAGE           | en_US.UTF-8   |
 | TERM               | xterm         |
 | LOCAL_NETWORK      | **None**      |
+
+## Access the WEBUI
+Access http://HOSTIP:PORT from a browser on the same network. Default password is `deluge`.
+
+## Local Client Access
+If you want to access Deluge from a Local client other than the WEBUI, like [Trieme for Android App](https://f-droid.org/packages/org.deluge.trireme/):
+Edit the file `/your/storage/path/to/config/auth` to add a new line `username:password:10`, save changes and restart container.
+
+| Credential | Default Value |
+| ---------- | ------------- |
+| `Host`     | HOSTIP        |
+| `Port`     | 58846         |
+| `Username` | username      |
+| `Password` | password      |
