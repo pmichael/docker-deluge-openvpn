@@ -6,51 +6,98 @@ TIMESTAMP_FORMAT='%a %b %d %T %Y'
 log() {
   echo "$(date +"${TIMESTAMP_FORMAT}") [ufw-enable] $*"
 }
+
 # Source our persisted env variables from container startup
 . /etc/deluge/environment-variables.sh
 
+## If we use UFW or the LOCAL_NETWORK we need to grab network config info
+if [[ "${ENABLE_UFW,,}" == "true" ]] || [[ -n "${LOCAL_NETWORK-}" ]]; then
+  eval $(/sbin/ip route list match 0.0.0.0 | awk '{if($5!="tun0"){print "GW="$3"\nINT="$5; exit}}')
+  ## IF we use UFW_ALLOW_GW_NET along with ENABLE_UFW we need to know what our netmask CIDR is
+  if [[ "${ENABLE_UFW,,}" == "true" ]] && [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
+    eval $(/sbin/ip route list dev ${INT} | awk '{if($5=="link"){print "GW_CIDR="$1; exit}}')
+  fi
+fi
+
+log "Got local network ${GW} and CIDR ${GW_CIDR} on interface ${INT}"
+
+## Open port to any address
+function ufwAllowPort {
+  typeset -n portNum=${1} proto=${2}
+  if [[ "${ENABLE_UFW,,}" == "true" ]] && [[ -n "${portNum-}" ]] && [[ -n "${proto-}" ]]; then
+    echo "allowing ${portNum} through the firewall"
+    ufw allow ${portNum} proto ${proto}
+  fi
+}
+
+## Open port to specific address.
+function ufwAllowPortLong {
+  typeset -n portNum=${1} sourceAddress=${2}
+
+  if [[ "${ENABLE_UFW,,}" == "true" ]] && [[ -n "${portNum-}" ]] && [[ -n "${sourceAddress-}" ]]; then
+    echo "allowing ${sourceAddress} through the firewall to port ${portNum}"
+    ufw allow from ${sourceAddress} to any port ${portNum}
+  fi
+}
+
 log "Firewall script executed with $*"
 
-# Enable firewall
-log "enabling firewall"
-sed -i -e s/IPV6=yes/IPV6=no/ /etc/default/ufw
+if [[ "${ENABLE_UFW,,}" == "true" ]]; then
+  if [[ "${UFW_DISABLE_IPTABLES_REJECT,,}" == "true" ]]; then
+    # A horrible hack to ufw to prevent it detecting the ability to limit and REJECT traffic
+    sed -i 's/return caps/return []/g' /usr/lib/python3/dist-packages/ufw/util.py
+    # force a rewrite on the enable below
+    echo "Disable and blank firewall"
+    ufw disable
+    echo "" > /etc/ufw/user.rules
+  fi
 
-# Block all outgoing
-log "Deny all outgoing traffic"
-ufw default deny outgoing
-# Block all incoming
-# log "Deny all incoming traffic"
-# ufw default deny incoming
-# Allow all incoming
-log "Allow all incoming traffic"
-ufw default allow incoming
+  # Enable firewall
+  log "enabling firewall"
+  sed -i -e s/IPV6=yes/IPV6=no/ /etc/default/ufw
+  ufw enable
 
-# Allow LOCAL_NETWORK
+  DELUGE_LISTEN_PORT="${DELUGE_LISTEN_PORT_LOW}:${DELUGE_LISTEN_PORT_HIGH}"
+  ufwAllowPort DELUGE_LISTEN_PORT tcp
+
+  DELUGE_OUTGOING_PORT="${DELUGE_OUTGOING_PORT_LOW}:${DELUGE_OUTGOING_PORT_HIGH}"
+  ufwAllowPort DELUGE_OUTGOING_PORT tcp
+  
+  if [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
+    ufwAllowPortLong DELUGE_WEB_PORT GW_CIDR
+    ufwAllowPortLong DELUGE_DEAMON_PORT GW_CIDR
+  else
+    ufwAllowPortLong DELUGE_WEB_PORT GW
+    ufwAllowPortLong DELUGE_DEAMON_PORT GW
+  fi
+
+  if [[ -n "${UFW_EXTRA_PORTS-}"  ]]; then
+    for port in ${UFW_EXTRA_PORTS//,/ }; do
+      if [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
+        ufwAllowPortLong port GW_CIDR
+      else
+        ufwAllowPortLong port GW
+      fi
+    done
+  fi
+fi
+
 if [[ -n "${LOCAL_NETWORK-}" ]]; then
-  for localNet in ${LOCAL_NETWORK//,/ }; do
-    log "Allow in and out from ${localNet}"
-    ufw allow in to ${localNet}
-    ufw allow out to ${localNet}
-  done
+  if [[ -n "${GW-}" ]] && [[ -n "${INT-}" ]]; then
+    for localNet in ${LOCAL_NETWORK//,/ }; do
+      echo "adding route to local network ${localNet} via ${GW} dev ${INT}"
+      /sbin/ip route add "${localNet}" via "${GW}" dev "${INT}"
+      if [[ "${ENABLE_UFW,,}" == "true" ]]; then
+        ufwAllowPortLong DELUGE_WEB_PORT localNet
+        ufwAllowPortLong DELUGE_DEAMON_PORT localNet
+        if [[ -n "${UFW_EXTRA_PORTS-}" ]]; then
+          for port in ${UFW_EXTRA_PORTS//,/ }; do
+            ufwAllowPortLong port localNet
+          done
+        fi
+      fi
+    done
+  fi
 fi
 
-# Allow outgoing traffic on the vpn interface ${1} in principle tun0
-log "Allow outgoing traffic on ${1}"
-ufw allow out on ${1} from any to any
-
-# Allow connection to the VPN IP server
-log "Getting server and port from ${2}"
-VPN_SERVER_IP=$(cat ${2} | grep -H "remote" | head -1 | cut -d " " -f 3)
-VPN_PORT=$(cat ${2} | grep -H "remote" | head -1 | cut -d " " -f 4)
-log "Got IP ${VPN_SERVER_IP} and port ${VPN_PORT}"
-
-PROTOCOL="udp"
-if [[ -n ${NORDVPN_PROTOCOL} ]]; then
-  PROTOCOL=${NORDVPN_PROTOCOL}
-fi
-
-log "Allow to connect to ${VPN_SERVER_IP} on port ${VPN_PORT} using ${PROTOCOL}"
-ufw allow out to ${VPN_SERVER_IP} port ${VPN_PORT} proto ${PROTOCOL}
-
-ufw enable
 ufw status

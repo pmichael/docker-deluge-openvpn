@@ -15,93 +15,28 @@ fi
 
 [[ "${DEBUG}" == "true" ]] && set -x
 
-log "[info] System information $(uname -a)"
-
-export PUID=$(echo "${PUID}" | sed -e 's/^[ \t]*//')
-if [[ ! -z "${PUID}" ]]; then
-  log "[info] PUID defined as '${PUID}'"
-else
-  log "[warn] PUID not defined (via -e PUID), defaulting to '99'"
-  export PUID="99"
-fi
-
-# set user nobody to specified user id (non unique)
-usermod -o -u "${PUID}" abc &>/dev/null
-
-export PGID=$(echo "${PGID}" | sed -e 's/^[ \t]*//')
-if [[ ! -z "${PGID}" ]]; then
-  log "[info] PGID defined as '${PGID}'"
-else
-  log "[warn] PGID not defined (via -e PGID), defaulting to '100'"
-  export PGID="100"
-fi
-
-# set group nobody to specified group id (non unique)
-groupmod -o -g "${PGID}" abc &>/dev/null
-
-# check for presence of perms file, if it exists then skip setting
-# permissions, otherwise recursively set on volume mappings for host
-if [[ ! -f "/config/perms.txt" ]]; then
-  log "[info] Setting permissions recursively on volume mappings..."
-
-  if [[ -d "/downloads" ]]; then
-    volumes=("/config" "/downloads")
-  else
-    volumes=("/config")
-  fi
-
-  set +e
-  chown -R "${PUID}":"${PGID}" "${volumes[@]}"
-  exit_code_chown=$?
-  chmod -R 775 "${volumes[@]}"
-  exit_code_chmod=$?
-  set -e
-
-  if ((${exit_code_chown} != 0 || ${exit_code_chmod} != 0)); then
-    log "[warn] Unable to chown/chmod ${volumes}, assuming NFS/SMB mountpoint"
-  fi
-
-  log "This file prevents permissions from being applied/re-applied to /config, if you want to reset permissions then please delete this file and restart the container." >/config/perms.txt
-else
-  log "[info] Permissions already set for volume mappings"
-fi
-
-log "[info] Setting permissions on files/folders inside container..."
-chown -R "${PUID}":"${PGID}" /usr/bin/deluged /usr/bin/deluge-web
-chmod -R 775 /usr/bin/deluged /usr/bin/deluge-web
-
-# if config file doesnt exist (wont exist until user changes a setting) then copy default config file
-if [[ ! -f /config/core.conf ]]; then
-  log "[info] Deluge config file doesn't exist, copying default..."
-  cp /etc/config/core.conf /config
-else
-  log "[info] Deluge config file already exists, skipping copy"
-fi
-
-# if config file doesnt exist then copy stock config file
-if [[ ! -f /config/web.conf ]]; then
-  log "[info] Deluge webui config file doesn't exist, copying default..."
-  cp /etc/config/web.conf /config
-else
-  log "[info] Deluge webui config file already exists, skipping copy"
-fi
-
 # If openvpn-pre-start.sh exists, run it
-if [[ -x /config/openvpn-pre-start.sh ]]; then
-  log "Executing /config/openvpn-pre-start.sh"
-  /config/openvpn-pre-start.sh "$@"
-  log "/config/openvpn-pre-start.sh returned $?"
+if [[ -x /scripts/openvpn-pre-start.sh ]]; then
+  echo "Executing /scripts/openvpn-pre-start.sh"
+  /scripts/openvpn-pre-start.sh "$@"
+  echo "/scripts/openvpn-pre-start.sh returned $?"
 fi
 
 # Allow for overriding the DNS used directly in the /etc/resolv.conf
 if compgen -e | grep -q "OVERRIDE_DNS"; then
-  log "One or more OVERRIDE_DNS addresses found. Will use them to overwrite /etc/resolv.conf"
-  log "" >/etc/resolv.conf
+  echo "One or more OVERRIDE_DNS addresses found. Will use them to overwrite /etc/resolv.conf"
+  echo "" >/etc/resolv.conf
   for var in $(compgen -e | grep "OVERRIDE_DNS"); do
-    log "nameserver $(printenv "$var")" >>/etc/resolv.conf
+    echo "nameserver $(printenv "$var")" >>/etc/resolv.conf
   done
 fi
 
+# Test DNS resolution
+if ! nslookup ${HEALTH_CHECK_HOST:-"google.com"} 1>/dev/null 2>&1; then
+  echo "WARNING: initial DNS resolution test failed"
+fi
+
+log "Configuring OPENVPN"
 # If create_tun_device is set, create /dev/net/tun
 if [[ "${CREATE_TUN_DEVICE,,}" == "true" ]]; then
   mkdir -p /dev/net
@@ -135,12 +70,40 @@ if [[ -n $OPENVPN_CONFIG_URL ]]; then
   log "Found URL to OpenVPN config, will download it."
   CHOSEN_OPENVPN_CONFIG=$VPN_PROVIDER_HOME/downloaded_config.ovpn
   curl -o "$CHOSEN_OPENVPN_CONFIG" -sSL "$OPENVPN_CONFIG_URL"
-  # shellcheck source=openvpn/modify-openvpn-config.sh
-  /etc/openvpn/modify-openvpn-config.sh "$CHOSEN_OPENVPN_CONFIG"
-elif [[ -x $VPN_PROVIDER_HOME/configure-openvpn.sh ]]; then
-  log "Provider $OPENVPN_PROVIDER has a custom startup script, executing it"
-  # shellcheck source=/dev/null
-  . "$VPN_PROVIDER_HOME"/configure-openvpn.sh
+fi
+
+if [[ -z ${CHOSEN_OPENVPN_CONFIG} ]]; then
+
+  # Support pulling configs from external config sources
+  VPN_CONFIG_SOURCE="${VPN_CONFIG_SOURCE:-auto}"
+  VPN_CONFIG_SOURCE="${VPN_CONFIG_SOURCE,,}" # to lowercase
+
+  echo "Running with VPN_CONFIG_SOURCE ${VPN_CONFIG_SOURCE}"
+
+  if [[ "${VPN_CONFIG_SOURCE}" == "auto" ]]; then
+    if [[ -x $VPN_PROVIDER_HOME/configure-openvpn.sh ]]; then
+      echo "Provider ${VPN_PROVIDER^^} has a bundled setup script. Defaulting to internal config"
+      VPN_CONFIG_SOURCE=internal
+    else
+      echo "No bundled config script found for ${VPN_PROVIDER^^}. Defaulting to external config"
+      VPN_CONFIG_SOURCE=external
+    fi
+  fi
+
+  if [[ "${VPN_CONFIG_SOURCE}" == "external" ]]; then
+    # shellcheck source=openvpn/fetch-external-configs.sh
+    ./etc/openvpn/fetch-external-configs.sh
+  fi
+
+  if [[ -x $VPN_PROVIDER_HOME/configure-openvpn.sh ]]; then
+    echo "Executing setup script for $OPENVPN_PROVIDER"
+    # Preserve $PWD in case it changes when sourcing the script
+    pushd -n "$PWD" >/dev/null
+    # shellcheck source=/dev/null
+    . "$VPN_PROVIDER_HOME"/configure-openvpn.sh
+    # Restore previous PWD
+    popd >/dev/null
+  fi
 fi
 
 if [[ -z ${CHOSEN_OPENVPN_CONFIG} ]]; then
@@ -178,6 +141,20 @@ if [[ -z ${CHOSEN_OPENVPN_CONFIG} ]]; then
   fi
 fi
 
+MODIFY_CHOSEN_CONFIG="${MODIFY_CHOSEN_CONFIG:-true}"
+# The config file we're supposed to use is chosen, modify it to fit this container setup
+if [[ "${MODIFY_CHOSEN_CONFIG,,}" == "true" ]]; then
+  # shellcheck source=openvpn/modify-openvpn-config.sh
+  /etc/openvpn/modify-openvpn-config.sh "$CHOSEN_OPENVPN_CONFIG"
+fi
+
+# If openvpn-post-config.sh exists, run it
+if [[ -x /scripts/openvpn-post-config.sh ]]; then
+  echo "Executing /scripts/openvpn-post-config.sh"
+  /scripts/openvpn-post-config.sh "$CHOSEN_OPENVPN_CONFIG"
+  echo "/scripts/openvpn-post-config.sh returned $?"
+fi
+
 # add OpenVPN user/pass
 if [[ "${OPENVPN_USERNAME}" == "**None**" ]] || [[ "${OPENVPN_PASSWORD}" == "**None**" ]]; then
   if [[ ! -f /config/openvpn-credentials.txt ]]; then
@@ -187,6 +164,7 @@ if [[ "${OPENVPN_USERNAME}" == "**None**" ]] || [[ "${OPENVPN_PASSWORD}" == "**N
   log "Found existing OPENVPN credentials at /config/openvpn-credentials.txt"
 else
   log "Setting OpenVPN credentials..."
+  mkdir -p /config
   echo "${OPENVPN_USERNAME}" >/config/openvpn-credentials.txt
   echo "${OPENVPN_PASSWORD}" >>/config/openvpn-credentials.txt
   chmod 600 /config/openvpn-credentials.txt
@@ -196,12 +174,9 @@ fi
 python3 /etc/openvpn/persistEnvironment.py /etc/deluge/environment-variables.sh
 
 # Setting up kill switch
-if [[ "true" = "${ENABLE_UFW}" ]]; then
-  /etc/ufw/enable.sh tun0 ${CHOSEN_OPENVPN_CONFIG}
-fi
+/etc/ufw/enable.sh tun0 ${CHOSEN_OPENVPN_CONFIG}
 
-DELUGE_CONTROL_OPTS="--script-security 2 --auth-nocache --up-delay --up /etc/openvpn/tunnelUp.sh --down /etc/openvpn/tunnelDown.sh"
-
+DELUGE_CONTROL_OPTS="--script-security 2 --up-delay --up /etc/openvpn/tunnelUp.sh --down /etc/openvpn/tunnelDown.sh"
 # shellcheck disable=SC2086
 log "Starting openvpn"
 exec openvpn ${DELUGE_CONTROL_OPTS} ${OPENVPN_OPTS} --config "${CHOSEN_OPENVPN_CONFIG}"

@@ -12,8 +12,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      go: ${{ steps.filter.outputs.go }}
-      charts: ${{ steps.filter.outputs.charts }}
+      docker: ${{ steps.filter.outputs.docker }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

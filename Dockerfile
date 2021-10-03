@@ -4,20 +4,14 @@ ARG DEBIAN_FRONTEND="noninteractive"
 
 RUN set -ex; \
     apt-get update && \
-    apt-get -y install gnupg apt-utils && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C5E6A5ED249AD24C && \
-    echo "deb http://ppa.launchpad.net/deluge-team/stable/ubuntu bionic main" >> \
-	/etc/apt/sources.list.d/deluge.list && \
-    echo "deb-src http://ppa.launchpad.net/deluge-team/stable/ubuntu bionic main" >> \
-	/etc/apt/sources.list.d/deluge.list && \
-    echo "**** install packages ****" && \
-    apt-get update && \
-    apt-get -y install dumb-init iputils-ping dnsutils bash jq net-tools openvpn curl ufw deluged deluge-console deluge-web python3-future python3-requests p7zip-full unrar unzip && \
+    apt-get -y install software-properties-common && \
+    add-apt-repository -u ppa:deluge-team/stable && \
+    apt-get update && apt-get -y install dumb-init iputils-ping dnsutils bash jq net-tools openvpn curl ufw deluged deluge-web p7zip-full unrar unzip && \
     echo "Cleanup"; \
     rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/* && \
     echo "Adding user"; \
-    groupadd -g 911 abc && \
-	useradd -u 911 -g 911 -s /bin/false -m abc && \
+    groupmod -g 1000 users && \
+    useradd -u 911 -U -d /config -s /bin/false abc && \
     usermod -G users abc
 
 # Add configuration and scripts
@@ -26,26 +20,35 @@ COPY root/ /
 ENV OPENVPN_USERNAME=**None** \
     OPENVPN_PASSWORD=**None** \
     OPENVPN_PROVIDER=**None** \
+    GLOBAL_APPLY_PERMISSIONS=true \
+    TZ=Europe/Berlin \
+    DELUGE_WEB_PORT=8112 \
+    DELUGE_DEAMON_PORT=58846 \
+    DELUGE_DOWNLOAD_DIR=/download/completed \
+    DELUGE_INCOMPLETE_DIR=/download/incomplete \
+    DELUGE_TORRENT_DIR=/download/torrents \
+    DELUGE_WATCH_DIR=/download/watch \
     CREATE_TUN_DEVICE=true \
     ENABLE_UFW=false \
-    UFW_EXTRA_PORTS= \
     UFW_ALLOW_GW_NET=false \
+    UFW_EXTRA_PORTS= \
+    UFW_DISABLE_IPTABLES_REJECT=false \
     PUID= \
     PGID= \
+    UMASK=022 \
+    PEER_DNS=true \
+    PEER_DNS_PIN_ROUTES=true \
     DROP_DEFAULT_ROUTE= \
     HEALTH_CHECK_HOST=google.com \
-    LANG='en_US.UTF-8' \
-    LANGUAGE='en_US.UTF-8' \ 
-    TERM='xterm' \
-    LOCAL_NETWORK= \
-    PEER_DNS= \
-    DISABLE_PORT_UPDATER=
+    LOG_TO_STDOUT=false \
+    DELUGE_LISTEN_PORT_LOW=53394 \
+    DELUGE_LISTEN_PORT_HIGH=53404 \
+    DELUGE_OUTGOING_PORT_LOW=63394 \
+    DELUGE_OUTGOING_PORT_HIGH=63404
 
 HEALTHCHECK --interval=1m CMD /etc/scripts/healthcheck.sh
 
-VOLUME /downloads
-VOLUME /config
-
-EXPOSE 8112 58846 58946 58946/udp
+# Deluge Deamon and web
+EXPOSE 8112 58846
 
 CMD ["dumb-init", "/etc/openvpn/init.sh"]

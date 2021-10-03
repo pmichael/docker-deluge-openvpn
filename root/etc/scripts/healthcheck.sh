@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Handle SIGTERM
+sigterm() {
+    echo "Received SIGTERM, exiting..."
+    trap - SIGTERM
+    kill -- -$$
+}
+trap sigterm SIGTERM
+
 #Network check
 # Ping uses both exit codes 1 and 2. Exit code 2 cannot be used for docker health checks,
 # therefore we use this script to catch error code 2
@@ -11,34 +19,20 @@ then
     HOST="google.com"
 fi
 
-ping -c 1 $HOST
+# Check DNS resolution works
+nslookup $HOST > /dev/null
+STATUS=$?
+if [[ ${STATUS} -ne 0 ]]
+then
+    echo "DNS resolution failed"
+    exit 1
+fi
+
+ping -c 2 -w 10 $HOST # Get at least 2 responses and timeout after 10 seconds
 STATUS=$?
 if [[ ${STATUS} -ne 0 ]]
 then
     echo "Network is down"
-    INTERFACE=$(ls /sys/class/net | grep tun)
-    ISINTERFACE=$?
-
-    if [[ ${ISINTERFACE} -ne 0 ]]
-    then
-        echo "TUN Interface not found"
-        exit 1
-    fi
-
-    echo "Resetting TUN"
-    ip link set ${INTERFACE} down
-    sleep 1
-    ip link set ${INTERFACE} up
-    echo "Sent kill SIGUSR1 to openvpn"
-    pkill -SIGUSR1 openvpn
-    sleep 20
-fi
-
-ping -c 1 $HOST
-STATUS=$?
-if [[ ${STATUS} -ne 0 ]]
-then
-    echo "Network is still down"
     exit 1
 fi
 
@@ -49,13 +43,11 @@ echo "Network is up"
 OPENVPN=$(pgrep openvpn | wc -l )
 DELUGE=$(pgrep deluged | wc -l)
 
-if [[ ${OPENVPN} -ne 1 ]]
-then
+if [[ ${OPENVPN} -ne 1 ]]; then
 	echo "Openvpn process not running"
 	exit 1
 fi
-if [[ ${DELUGE} -ne 1 ]]
-then
+if [[ ${DELUGE} -ne 1 ]]; then
 	echo "deluge-daemon process not running"
 	exit 1
 fi

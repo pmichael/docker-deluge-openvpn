@@ -9,4 +9,3 @@ log() {
 
 log "Disabling ufw"
 ufw disable
-ufw status

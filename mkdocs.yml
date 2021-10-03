@@ -1,0 +1,12 @@
+site_name: docker-deluge-openvpn
+site_url: http://ebrianne.github.io/docker-deluge-openvpn/
+repo_url: https://github.com/haugene/docker-deluge-openvpn/
+theme: readthedocs
+markdown_extensions:
+    - toc:
+        permalink: True
+        separator: "_"
+nav:
+   - 'Overview': 'index.md'
+plugins:
+    - search

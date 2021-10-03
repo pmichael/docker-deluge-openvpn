@@ -17,20 +17,23 @@ wanted_variables = {
     'ENABLE_UFW',
     'PUID',
     'PGID',
+    'UMASK',
     'DROP_DEFAULT_ROUTE',
+    'GLOBAL_APPLY_PERMISSIONS',
+    'LOG_TO_STDOUT',
     'DISABLE_PORT_UPDATER',
-    'LOCAL_NETWORK',
-    'UFW_EXTRA_PORTS',
-    'UFW_ALLOW_GW_NET',
-    'CHOSEN_OPENVPN_CONFIG',
+    'TZ',
+    'PEER_DNS',
+    'PEER_DNS_PIN_ROUTES'
 }
 
 variables_to_persist = {}
 
 for env_var in os.environ:
-    if env_var in wanted_variables:
+    if env_var.startswith('DELUGE_'):
         variables_to_persist[env_var] = os.environ.get(env_var)
-
+    elif env_var in wanted_variables:
+        variables_to_persist[env_var] = os.environ.get(env_var)
 
 # Dump resulting settings to file
 with open(args.env_var_script_file, 'w') as script_file:
