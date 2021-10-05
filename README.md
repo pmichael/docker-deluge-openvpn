@@ -15,8 +15,8 @@ It bundles configuration files for many popular VPN providers to make the setup 
 
 ```
 $ docker run --cap-add=NET_ADMIN -d \
-             --sysctl=net.ipv6.conf.all.disable_ipv6=0 \
-              -v /your/storage/path/to/downloads/:/downloads \
+             --sysctl=net.ipv6.conf.all.disable_ipv6=1 \
+              -v /your/storage/path/to/downloads/:/download \
               -v /your/storage/path/to/config/:/config \
               -e OPENVPN_PROVIDER=PIA \
               -e OPENVPN_CONFIG=France \
@@ -33,7 +33,7 @@ version: '3.2'
 services:
     deluge-openvpn:
         volumes:
-            - '/your/storage/path/to/downloads/:/downloads'
+            - '/your/storage/path/to/downloads/:/download'
             - '/your/storage/path/to/config/:/config'
         environment:
             - OPENVPN_PROVIDER=PIA
@@ -44,7 +44,7 @@ services:
         cap_add:
             - NET_ADMIN
         sysctls:
-            - net.ipv6.conf.all.disable_ipv6=0
+            - net.ipv6.conf.all.disable_ipv6=1
         ports:
             - '8112:8112'
         image: ebrianne/docker-deluge-openvpn

@@ -56,12 +56,6 @@ if [[ "${ENABLE_UFW,,}" == "true" ]]; then
   log "enabling firewall"
   sed -i -e s/IPV6=yes/IPV6=no/ /etc/default/ufw
   ufw enable
-
-  DELUGE_LISTEN_PORT="${DELUGE_LISTEN_PORT_LOW}:${DELUGE_LISTEN_PORT_HIGH}"
-  ufwAllowPort DELUGE_LISTEN_PORT tcp
-
-  DELUGE_OUTGOING_PORT="${DELUGE_OUTGOING_PORT_LOW}:${DELUGE_OUTGOING_PORT_HIGH}"
-  ufwAllowPort DELUGE_OUTGOING_PORT tcp
   
   if [[ "${UFW_ALLOW_GW_NET,,}" == "true" ]]; then
     ufwAllowPortLong DELUGE_WEB_PORT GW_CIDR
