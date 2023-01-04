@@ -22,7 +22,7 @@ $ docker run --cap-add=NET_ADMIN -d \
               -e OPENVPN_PASSWORD=pass \
               -e LOCAL_NETWORK=192.168.0.0/16 \
               -p 8112:8112 \
-              timdev0/docker-deluge-openvpn
+              timdev0/docker-deluge-openvpn:master
 ```
 
 ## Docker Compose
@@ -45,7 +45,7 @@ services:
             - net.ipv6.conf.all.disable_ipv6=1
         ports:
             - '8112:8112'
-        image: timdev0/docker-deluge-openvpn
+        image: timdev0/docker-deluge-openvpn:master
 ```
 ## Documentation
 
