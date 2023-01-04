@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.10
 
 ARG DEBIAN_FRONTEND="noninteractive"
 
@@ -21,7 +21,7 @@ ENV OPENVPN_USERNAME=**None** \
     OPENVPN_PASSWORD=**None** \
     OPENVPN_PROVIDER=**None** \
     GLOBAL_APPLY_PERMISSIONS=true \
-    TZ=Europe/Berlin \
+    TZ=Europe/Paris \
     DELUGE_WEB_PORT=8112 \
     DELUGE_DEAMON_PORT=58846 \
     DELUGE_DOWNLOAD_DIR=/download/completed \

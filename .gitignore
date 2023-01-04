@@ -1,3 +1,7 @@
 .vscode
 site/
 env
+.env
+.env.example
+configs
+docker-compose.yml
