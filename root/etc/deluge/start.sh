@@ -61,6 +61,8 @@ if [ -e /config/core.conf ]; then
   #Deamon port
   sed -i -e "s/\"daemon_port\": \".*\"/\"daemon_port\": \"$DELUGE_DEAMON_PORT\"/" /config/core.conf
   #location
+  sed -i -e "s/\"move_completed\": .*/\"move_completed\": $DELUGE_MOVE_COMPLETED,/" /config/core.conf
+  # sed -i -e "s/\"copy_torrent_file\": .*/\"copy_torrent_file\": $COPY_TORRENT_FILE,/" /config/core.conf
   sed -i -e "s/\"download_location\": \".*\"/\"download_location\": \"${DELUGE_INCOMPLETE_DIR//\//\\/}\"/" /config/core.conf
   sed -i -e "s/\"autoadd_location\": \".*\"/\"autoadd_location\": \"${DELUGE_WATCH_DIR//\//\\/}\"/" /config/core.conf
   sed -i -e "s/\"move_completed_path\": \".*\"/\"move_completed_path\": \"${DELUGE_DOWNLOAD_DIR//\//\\/}\"/" /config/core.conf
