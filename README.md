@@ -1,10 +1,8 @@
 # OpenVPN and Deluge with WebUI
 
-![Build/Push (master)](https://github.com/ebrianne/docker-deluge-openvpn/workflows/Build/Push%20(master)/badge.svg?branch=master)
-[![Docker Pulls](https://img.shields.io/docker/pulls/ebrianne/docker-deluge-openvpn.svg)](https://hub.docker.com/r/ebrianne/docker-deluge-openvpn/)
-
 ## Acknowledgments
 
+This is a fork of [ebrianne repo](https://github.com/ebrianne/docker-deluge-openvpn) I just updated the ubuntu and deluge version. 
 This project is based heavily on the fork of [docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn). All VPN configurations are now moved to a [separate repository](https://github.com/haugene/vpn-configs-contrib).
 
 ## Quick Start
@@ -24,7 +22,7 @@ $ docker run --cap-add=NET_ADMIN -d \
               -e OPENVPN_PASSWORD=pass \
               -e LOCAL_NETWORK=192.168.0.0/16 \
               -p 8112:8112 \
-              ebrianne/docker-deluge-openvpn
+              timdev0/docker-deluge-openvpn
 ```
 
 ## Docker Compose
@@ -47,7 +45,7 @@ services:
             - net.ipv6.conf.all.disable_ipv6=1
         ports:
             - '8112:8112'
-        image: ebrianne/docker-deluge-openvpn
+        image: timdev0/docker-deluge-openvpn
 ```
 ## Documentation
 
