@@ -39,13 +39,10 @@ services:
             - '/your/storage/path/to/downloads/:/download'
             - '/your/storage/path/to/config/:/config'
         environment:
-          TZ: ${TIMEZONE}
-          PUID: ${USER_ID}
-          PGID: ${GROUP_ID}
           OPENVPN_PROVIDER: PIA
           OPENVPN_CONFIG: switzerland
-          OPENVPN_USERNAME: ${VPN_USER}
-          OPENVPN_PASSWORD: ${VPN_PASS}
+          OPENVPN_USERNAME: user
+          OPENVPN_PASSWORD: pass
           LOCAL_NETWORK: 192.168.0.0/16
           DELUGE_INCOMPLETE_DIR: /download # or /dowload/incomplete
           DELUGE_MOVE_COMPLETED: false
