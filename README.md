@@ -2,7 +2,7 @@
 
 ## Acknowledgments
 
-This is a fork of [ebrianne repo](https://github.com/ebrianne/docker-deluge-openvpn) I just updated the ubuntu and deluge version. 
+This is a fork of [ebrianne repo](https://github.com/ebrianne/docker-deluge-openvpn) I upgraded the ubuntu and deluge used in the dockerfile, prepared deluge to be used with radarr and sonarr and add more customization with env var. 
 This project is based heavily on the fork of [docker-transmission-openvpn](https://github.com/haugene/docker-transmission-openvpn). All VPN configurations are now moved to a [separate repository](https://github.com/haugene/vpn-configs-contrib).
 
 ## Quick Start
@@ -26,6 +26,8 @@ $ docker run --cap-add=NET_ADMIN -d \
               -e DELUGE_COPY_TORRENT=false \
               -e DELUGE_WEB_PORT=8112 \
               -e DELUGE_DEAMON_PORT=58846 \
+              -e DELUGE_LABEL_NAME_RADARR=radarr \ 
+              -e DELUGE_LABEL_NAME_SONARR=tv-sonarr \
               -p 8112:8112 \
               timdev0/docker-deluge-openvpn:master
 ```
@@ -51,7 +53,9 @@ services:
           # DELUGE_TORRENT_DIR: /download/torrents #optional put COPY_TORRENT_FILE to true
           # DELUGE_WATCH_DIR: /download/watch #optional
           # DELUGE_WEB_PORT: 8112 #optinal
-          # DELUGE_DEAMON_PORT: 58846 #optional  
+          # DELUGE_DEAMON_PORT: 58846 #optional
+          DELUGE_LABEL_NAME_RADARR: radarr
+          DELUGE_LABEL_NAME_SONARR: tv-sonarr
         cap_add:
             - NET_ADMIN
         sysctls:

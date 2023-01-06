@@ -51,7 +51,12 @@ else
   log "[info] Deluge webui config file already exists, skipping copy"
 fi
 
-echo "-------------------------------------------------------------------------------"
+if [[ ! -f /config/label.conf ]]; then
+  log "[info] Deluge label plugin config file doesn't exist, copying default..."
+  cp /etc/config/label.conf /config
+else
+  log "[info] Deluge label plugin config file already exists, skipping copy"
+fi
 
 # if plugin file ltconfig doesnt exist then copy stock plugin file
 if [[ ! -f /plugins/ltConfig-2.0.0.egg ]]; then
@@ -87,6 +92,10 @@ if [ -e /config/core.conf ]; then
   sed -i -e "s/\"torrentfiles_location\": \".*\"/\"torrentfiles_location\": \"${DELUGE_TORRENT_DIR//\//\\/}\"/" /config/core.conf
   #Torrents File
   sed -i -e "s/\"copy_torrent_file\": .*/\"copy_torrent_file\": $DELUGE_COPY_TORRENT,/" /config/core.conf
+  # Labels name
+  # replace where is "radarr": in file label.conf to "$DELUGE_LABEL_NAME_RADARR":
+  sed -i -e "s/\"radarr\":/\"$DELUGE_LABEL_NAME_RADARR\":/" /config/label.conf
+  sed -i -e "s/\"tv-sonarr\":/\"$DELUGE_LABEL_NAME_SONARR\":/" /config/label.conf
 fi
 
 if [ -e /config/web.conf ]; then
