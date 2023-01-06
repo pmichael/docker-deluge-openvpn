@@ -51,6 +51,24 @@ else
   log "[info] Deluge webui config file already exists, skipping copy"
 fi
 
+echo "-------------------------------------------------------------------------------"
+
+# if plugin file ltconfig doesnt exist then copy stock plugin file
+if [[ ! -f /plugins/ltConfig-2.0.0.egg ]]; then
+  log "[info] Deluge ltconfig plugin doesn't exist, copying..."
+  cp /etc/plugins/ltConfig-2.0.0.egg /config/plugins
+else
+  log "[info] Deluge ltconfig plugin already exists, skipping copy"
+fi
+
+# if config file doesnt exist then copy stock config file
+if [[ ! -f /config/ltconfig.conf ]]; then
+  log "[info] Deluge ltconfig config file doesn't exist, copying default..."
+  cp /etc/config/ltconfig.conf /config
+else
+  log "[info] Deluge ltconfig config file already exists, skipping copy"
+fi
+
 log "Using ip of interface $1: $4"
 export DELUGE_BIND_ADDRESS_IPV4=$4
 
@@ -62,11 +80,12 @@ if [ -e /config/core.conf ]; then
   sed -i -e "s/\"daemon_port\": \".*\"/\"daemon_port\": \"$DELUGE_DEAMON_PORT\"/" /config/core.conf
   #location
   sed -i -e "s/\"move_completed\": .*/\"move_completed\": $DELUGE_MOVE_COMPLETED,/" /config/core.conf
-  # sed -i -e "s/\"copy_torrent_file\": .*/\"copy_torrent_file\": $COPY_TORRENT_FILE,/" /config/core.conf
   sed -i -e "s/\"download_location\": \".*\"/\"download_location\": \"${DELUGE_INCOMPLETE_DIR//\//\\/}\"/" /config/core.conf
   sed -i -e "s/\"autoadd_location\": \".*\"/\"autoadd_location\": \"${DELUGE_WATCH_DIR//\//\\/}\"/" /config/core.conf
   sed -i -e "s/\"move_completed_path\": \".*\"/\"move_completed_path\": \"${DELUGE_DOWNLOAD_DIR//\//\\/}\"/" /config/core.conf
   sed -i -e "s/\"torrentfiles_location\": \".*\"/\"torrentfiles_location\": \"${DELUGE_TORRENT_DIR//\//\\/}\"/" /config/core.conf
+  #Torrents File
+  sed -i -e "s/\"copy_torrent_file\": .*/\"copy_torrent_file\": $DELUGE_COPY_TORRENT,/" /config/core.conf
 fi
 
 if [ -e /config/web.conf ]; then
