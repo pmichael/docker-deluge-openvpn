@@ -29,7 +29,7 @@ $ docker run --cap-add=NET_ADMIN -d \
               -e DELUGE_LABEL_NAME_RADARR=radarr \ 
               -e DELUGE_LABEL_NAME_SONARR=tv-sonarr \
               -p 8112:8112 \
-              timdev0/docker-deluge-openvpn:master
+              timdev0/docker-deluge-openvpn:latest
 ```
 
 ## Docker Compose
@@ -62,7 +62,7 @@ services:
             - net.ipv6.conf.all.disable_ipv6=1
         ports:
             - '8112:8112'
-        image: timdev0/docker-deluge-openvpn:master
+        image: timdev0/docker-deluge-openvpn:latest
 ```
 ## Documentation
 
