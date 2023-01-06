@@ -56,6 +56,7 @@ echo "--------------------------------------------------------------------------
 # if plugin file ltconfig doesnt exist then copy stock plugin file
 if [[ ! -f /plugins/ltConfig-2.0.0.egg ]]; then
   log "[info] Deluge ltconfig plugin doesn't exist, copying..."
+  mkdir -p /config/plugins
   cp /etc/plugins/ltConfig-2.0.0.egg /config/plugins
 else
   log "[info] Deluge ltconfig plugin already exists, skipping copy"
