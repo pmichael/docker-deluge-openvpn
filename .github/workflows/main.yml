@@ -50,7 +50,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/arm64,linux/amd64
+          platforms: linux/arm64,linux/amd64,linux/arm/v7
           push: true
-          tags: timdev0/docker-deluge-openvpn:latest
+          tags: pmichael/docker-deluge-openvpn:latest
 
