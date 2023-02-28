@@ -42,7 +42,7 @@ jobs:
         uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          password: ${{ secrets.DOCKER_HUB_PASS }}
 
       - name: Build and push docker image
         id: docker_build
@@ -50,7 +50,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/arm64,linux/amd64,linux/arm/v7
+          platforms: linux/arm/v7
           push: true
           tags: pmichael/docker-deluge-openvpn:latest
 
