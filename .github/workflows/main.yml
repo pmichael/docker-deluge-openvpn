@@ -52,5 +52,5 @@ jobs:
           file: ./Dockerfile
           platforms: linux/arm/v7
           push: true
-          tags: pmichael/docker-deluge-openvpn:latest
+          tags: mihanoo/docker-deluge-openvpn:latest
 
